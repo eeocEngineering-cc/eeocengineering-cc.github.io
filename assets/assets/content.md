@@ -16,5 +16,5 @@
 
 ![Cable Kit](assets/layout.png)
 
-## WARNING:.
+## WARNING:
 - Avoid extreme heat (e.g. leaving in hot car) → may warp PLA plastic
