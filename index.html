@@ -10,15 +10,13 @@
       padding: 0;
       box-sizing: border-box;
     }
-
     body {
       font-family: system-ui, -apple-system, sans-serif;
       min-height: 100vh;
       color: white;
       background: #111;
-      /* Background image - replace this URL with your own */
       background-image:
-        linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.65)),
+        linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)),
         url('background.png');
       background-size: cover;
       background-position: center;
@@ -30,20 +28,17 @@
       text-align: center;
       padding: 2rem;
     }
-
     .logo-container {
       margin-bottom: 2.5rem;
     }
-
     .logo {
       max-width: 280px;
       height: auto;
       filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
     }
-
     .content-box {
       background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(5px);
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 16px;
       padding: 2.5rem 2rem;
@@ -51,21 +46,18 @@
       width: 100%;
       box-shadow: 0 8px 32px rgba(0,0,0,0.35);
     }
-
     h1 {
       font-size: 2.4rem;
       margin-bottom: 1.2rem;
       font-weight: 600;
       letter-spacing: -0.02em;
     }
-
     p {
       font-size: 1.15rem;
       line-height: 1.6;
       opacity: 0.92;
       margin-bottom: 2rem;
     }
-
     .download-btn {
       display: inline-flex;
       align-items: center;
@@ -82,20 +74,23 @@
       border: none;
       cursor: pointer;
     }
-
     .download-btn:hover {
       transform: translateY(-3px);
       box-shadow: 0 12px 30px rgba(0,0,0,0.4);
       background: #f0f0f0;
     }
-
     .download-btn:active {
       transform: translateY(-1px);
     }
-
     .icon {
       width: 1.3em;
       height: 1.3em;
+    }
+
+    /* Optional: Styling for the Stripe button container */
+    stripe-buy-button {
+      display: block;
+      margin-bottom: 1.5rem;
     }
 
     @media (max-width: 480px) {
@@ -106,20 +101,26 @@
   </style>
 </head>
 <body>
-
   <div class="logo-container">
-    <!-- Replace with your actual logo -->
     <img src="logo.png" alt="Logo" class="logo">
   </div>
-
   <div class="content-box">
     <h1>Welcome to EEOC Engineering!</h1>
     <p>
-      Our website and ordering system are in the midst of an overhaul. If you have any questions or wish to order a buzzer system, please email us at<br>
+      If you have any questions, please email us at<br>
       support@eeocengineering.cc
     </p>
 
-    <!-- Change the href to your actual PDF file path -->
+    <!-- Stripe Buy Button -->
+    <script async
+      src="https://js.stripe.com/v3/buy-button.js">
+    </script>
+    <stripe-buy-button
+      buy-button-id="buy_btn_1THrRGQrCpTe1hMl8xedfKWc"
+      publishable-key="pk_live_51S7MoHQrCpTe1hMlSfYVfHi4lpp0FMoQn10oTdFCfodIE2UJvy7fKd9S3dhqAWxx2lJjg2XrlUCUjM6zAHv7qd5300OhPsMrdz"
+    >
+    </stripe-buy-button>
+
     <a href="elio_manual.pdf" download class="download-btn">
       <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
         <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
@@ -127,6 +128,5 @@
       Download ELIO Quick Start Guide
     </a>
   </div>
-
 </body>
 </html>
