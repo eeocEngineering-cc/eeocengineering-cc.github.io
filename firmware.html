@@ -414,7 +414,7 @@
           ],
           flashSize: "keep",
           eraseAll: false,
-          compress: true,
+          compress: false,
           reportProgress: (fileIndex, written, total) => {
             const percent = total ? Math.round((written / total) * 100) : 0;
             progressLabelEl.textContent = `Writing ${fileLabels[fileIndex] || "file"}... ${percent}%`;
