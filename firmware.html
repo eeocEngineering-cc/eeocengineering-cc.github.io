@@ -263,7 +263,7 @@
   </div>
 
   <script type="module">
-    import { ESPLoader, Transport } from "https://cdn.jsdelivr.net/npm/esptool-js@0.6.0/+esm";
+    import { ESPLoader, Transport } from "https://cdn.jsdelivr.net/npm/esptool-js@0.5.7/+esm";
 
     // ---- CONFIGURE YOUR RELEASES HERE ----
     // Each release needs a folder at the given path (relative to the site root)
@@ -414,7 +414,10 @@
           ],
           flashSize: "keep",
           eraseAll: false,
-          compress: false,
+          // Pinned to esptool-js 0.5.7 above — later releases (0.6.x) have a bug where
+          // compressed writes fail on ESP32-S3 native USB, and non-compressed writes
+          // aren't implemented at all. 0.5.7 predates that regression.
+          compress: true,
           reportProgress: (fileIndex, written, total) => {
             const percent = total ? Math.round((written / total) * 100) : 0;
             progressLabelEl.textContent = `Writing ${fileLabels[fileIndex] || "file"}... ${percent}%`;
@@ -483,3 +486,4 @@
   </script>
 </body>
 </html>
+
