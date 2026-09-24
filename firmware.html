@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Firmware Update · eeocEngineering</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    color: white;
+    background: #111;
+    background-image:
+      linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)),
+      url('background.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6rem 2rem 2rem;
+  }
+
+  /* Top bar (same on every page) */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    z-index: 100;
+  }
+  .topbar a.topbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    padding: 0.55rem 1.1rem;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all .2s ease;
+  }
+  .topbar a.topbar-btn:hover {
+    background: rgba(255,255,255,0.22);
+    transform: translateY(-2px);
+  }
+
+  .content-box {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    max-width: 640px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  }
+
+  h1 {
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .requirements {
+    font-size: 0.95rem;
+    line-height: 1.55;
+    opacity: 0.85;
+    margin-bottom: 2rem;
+    padding: 0.9rem 1.1rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    text-align: left;
+  }
+
+  .release-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .release-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    color: #111;
+    padding: 1rem 1.4rem;
+    border-radius: 12px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+  }
+  .release-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+    background: #f0f0f0;
+  }
+  .release-btn .arrow { opacity: 0.5; }
+
+  .unsupported {
+    background: rgba(220, 70, 70, 0.18);
+    border: 1px solid rgba(255,120,120,0.4);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    text-align: left;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(3px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 1.5rem;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal-box {
+    background: #1b1b1b;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    text-align: left;
+  }
+  .modal-box h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+  .modal-box p {
+    font-size: 1rem;
+    line-height: 1.55;
+    opacity: 0.9;
+    margin-bottom: 1.5rem;
+  }
+
+  .modal-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: #ffffff;
+    color: #111;
+    padding: 0.75rem 1.6rem;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s ease;
+  }
+  .modal-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+  }
+  .modal-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .modal-btn.secondary {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    margin-top: 0.6rem;
+  }
+
+  .device-status {
+    font-size: 0.9rem;
+    opacity: 0.75;
+    margin-bottom: 1rem;
+    min-height: 1.2em;
+  }
+
+  .progress-track {
+    width: 100%;
+    height: 10px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 0.9rem;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: #ffffff;
+    transition: width 0.15s ease;
+  }
+  .progress-label {
+    font-size: 0.85rem;
+    opacity: 0.75;
+    margin-bottom: 0.5rem;
+  }
+
+  .modal-box.error p { color: #ff9b9b; }
+  .modal-box.done p { color: #9bffab; }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 1.8rem; }
+    .content-box { padding: 2rem 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <a href="index.html" class="topbar-btn">&larr; Back</a>
+    <a href="firmware.html" class="topbar-btn">&#9889; Firmware Update</a>
+  </div>
+
+  <div class="content-box">
+    <h1>Firmware Update</h1>
+
+    <div class="requirements">
+      <strong>Before you start:</strong><br>
+      This tool flashes firmware directly from your browser over USB &mdash; no software install needed.
+      It requires a desktop browser with Web Serial support: <strong>Google Chrome, Microsoft Edge, or Opera</strong>.
+      It will <strong>not</strong> work in Safari or Firefox, and it does not work on mobile.
+    </div>
+
+    <div id="browserWarning" class="unsupported" style="display:none; margin-bottom: 1.5rem;">
+      Your current browser doesn't support the Web Serial API, so this tool can't run here.
+      Please open this page in Chrome, Edge, or Opera on a desktop computer.
+    </div>
+
+    <ul class="release-list" id="releaseList"></ul>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box" id="modalBox">
+      <h2 id="modalTitle"></h2>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { ESPLoader, Transport } from "https://cdn.jsdelivr.net/npm/esptool-js@0.6.0/+esm";
+
+    // ---- CONFIGURE YOUR RELEASES HERE ----
+    // Each release needs a folder at the given path (relative to the site root)
+    // containing exactly: bootloader.bin, partitions.bin, firmware.bin
+    const RELEASES = [
+      {
+        name: "Elio Buzzers v4.04-sync.",
+        dir: "firmware/elio-buzzers-v4.04-sync",
+      },
+      // Add more releases here, e.g.:
+      // { name: "Elio Buzzers v4.05", dir: "firmware/elio-buzzers-v4.05" },
+    ];
+
+    // Standard ESP32-S3 flash offsets
+    const OFFSETS = {
+      bootloader: 0x0,
+      partitions: 0x8000,
+      firmware: 0x10000,
+    };
+
+    const releaseListEl = document.getElementById("releaseList");
+    const browserWarningEl = document.getElementById("browserWarning");
+    const overlayEl = document.getElementById("modalOverlay");
+    const modalTitleEl = document.getElementById("modalTitle");
+    const modalBodyEl = document.getElementById("modalBody");
+    const modalBoxEl = document.getElementById("modalBox");
+
+    const supported = "serial" in navigator;
+
+    // Render release buttons
+    RELEASES.forEach((release) => {
+      const li = document.createElement("li");
+      const btn = document.createElement("button");
+      btn.className = "release-btn";
+      btn.disabled = !supported;
+      btn.innerHTML = `<span>${release.name}</span><span class="arrow">&rarr;</span>`;
+      btn.addEventListener("click", () => startFlow(release));
+      li.appendChild(btn);
+      releaseListEl.appendChild(li);
+    });
+
+    if (!supported) {
+      browserWarningEl.style.display = "block";
+    }
+
+    let selectedPort = null;
+
+    function openModal(title, bodyHtml, boxClass = "") {
+      modalTitleEl.textContent = title;
+      modalBodyEl.innerHTML = bodyHtml;
+      modalBoxEl.className = "modal-box " + boxClass;
+      overlayEl.classList.add("open");
+    }
+
+    function closeModal() {
+      overlayEl.classList.remove("open");
+      selectedPort = null;
+    }
+
+    function startFlow(release) {
+      selectedPort = null;
+      showPlugStep(release);
+    }
+
+    // Step 1: plug in instructions
+    function showPlugStep(release) {
+      openModal(
+        "Connect the device",
+        `<p>Plug the PWR or PWR/IC port on the main control box into your device.</p>
+         <button class="modal-btn" id="plugDoneBtn">Done</button>
+         <button class="modal-btn secondary" id="plugCancelBtn">Cancel</button>`
+      );
+      document.getElementById("plugDoneBtn").addEventListener("click", () => showConnectStep(release));
+      document.getElementById("plugCancelBtn").addEventListener("click", closeModal);
+    }
+
+    // Step 2: select serial port
+    function showConnectStep(release) {
+      openModal(
+        "Select your device",
+        `<p>Choose the device from the list. It's usually the only one with "USB" in its name.</p>
+         <div class="device-status" id="deviceStatus"></div>
+         <button class="modal-btn" id="selectPortBtn">Select Device</button>
+         <button class="modal-btn secondary" id="uploadBtn" disabled>Upload</button>`
+      );
+
+      const deviceStatusEl = document.getElementById("deviceStatus");
+      const selectBtn = document.getElementById("selectPortBtn");
+      const uploadBtn = document.getElementById("uploadBtn");
+
+      selectBtn.addEventListener("click", async () => {
+        try {
+          selectedPort = await navigator.serial.requestPort();
+          deviceStatusEl.textContent = "Device selected \u2713";
+          uploadBtn.disabled = false;
+        } catch (err) {
+          // user cancelled the picker — no action needed
+        }
+      });
+
+      uploadBtn.addEventListener("click", () => {
+        if (!selectedPort) return;
+        showFlashingStep(release);
+      });
+    }
+
+    // Step 3: flashing with progress
+    async function showFlashingStep(release) {
+      openModal(
+        "Uploading firmware",
+        `<div class="progress-label" id="progressLabel">Connecting...</div>
+         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+         <p style="font-size:0.85rem; opacity:0.7; margin-bottom:0;">Do not unplug the device during this process.</p>`
+      );
+
+      const progressLabelEl = document.getElementById("progressLabel");
+      const progressFillEl = document.getElementById("progressFill");
+
+      const fileLabels = ["bootloader.bin", "partitions.bin", "firmware.bin"];
+
+      try {
+        const transport = new Transport(selectedPort, true);
+        const esploader = new ESPLoader({
+          transport,
+          baudrate: 115200,
+          terminal: {
+            clean() {},
+            writeLine() {},
+            write() {},
+          },
+        });
+
+        progressLabelEl.textContent = "Connecting to device...";
+        await esploader.main();
+
+        progressLabelEl.textContent = "Loading firmware files...";
+        const [bootloader, partitions, firmware] = await Promise.all([
+          fetchBinaryString(`${release.dir}/bootloader.bin`),
+          fetchBinaryString(`${release.dir}/partitions.bin`),
+          fetchBinaryString(`${release.dir}/firmware.bin`),
+        ]);
+
+        await esploader.writeFlash({
+          fileArray: [
+            { data: bootloader, address: OFFSETS.bootloader },
+            { data: partitions, address: OFFSETS.partitions },
+            { data: firmware, address: OFFSETS.firmware },
+          ],
+          flashSize: "keep",
+          eraseAll: false,
+          compress: true,
+          reportProgress: (fileIndex, written, total) => {
+            const percent = total ? Math.round((written / total) * 100) : 0;
+            progressLabelEl.textContent = `Writing ${fileLabels[fileIndex] || "file"}... ${percent}%`;
+            progressFillEl.style.width = percent + "%";
+          },
+        });
+
+        await esploader.after("hard_reset");
+        try { await transport.disconnect(); } catch (e) {}
+
+        showDoneStep();
+      } catch (err) {
+        console.error(err);
+        showErrorStep(err && err.message ? err.message : String(err));
+      }
+    }
+
+    // Step 4: done
+    function showDoneStep() {
+      openModal(
+        "Update complete",
+        `<p>Flashing complete! Unplug and replug your device.</p>
+         <button class="modal-btn" id="doneCloseBtn">Close</button>`,
+        "done"
+      );
+      document.getElementById("doneCloseBtn").addEventListener("click", closeModal);
+    }
+
+    // Error state
+    function showErrorStep(message) {
+      openModal(
+        "Something went wrong",
+        `<p>${escapeHtml(message)}</p>
+         <button class="modal-btn secondary" id="errorCloseBtn">Close</button>`,
+        "error"
+      );
+      document.getElementById("errorCloseBtn").addEventListener("click", closeModal);
+    }
+
+    // Fetch a binary file and convert it to the byte-string format esptool-js expects
+    async function fetchBinaryString(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Couldn't load ${url} (HTTP ${res.status})`);
+      const buf = await res.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let binary = "";
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+      }
+      return binary;
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // Close modal on overlay click (outside the box), except mid-flash
+    overlayEl.addEventListener("click", (e) => {
+      if (e.target === overlayEl && modalTitleEl.textContent !== "Uploading firmware") {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>
