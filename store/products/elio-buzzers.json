@@ -1,0 +1,10 @@
+{
+  "id": "elio-buzzers",
+  "name": "Elio Buzzers v4",
+  "price": "$185.00",
+  "thumbnail": "thumb.png",
+  "images": ["photo1.png", "photo2.png", "photo3.png"],
+  "stripe_buy_button_id": "buy_btn_1THrRGQrCpTe1hMl8xedfKWc",
+  "stripe_publishable_key": "pk_live_51S7MoHQrCpTe1hMlSfYVfHi4lpp0FMoQn10oTdFICEI2UJvy7fKd9S3dhqAWxx2lJjg2XrlUCUjM6zAHv7qd5300OhPsMrdz",
+  "description": "Project Elio Buzzers are a set of quiz buzzers designed for trivia, game shows, and classroom use. Each unit features front and back RGB NeoPixel indicators, a satisfying pushbutton, and connects to the rest of the system with CAT5 Ethernet cables. The buzzers are controlled by a central ESP32 hub and daisy chained together.\n\nIncludes eight buzzers (4 on each team), a remote clear button, and one main control box."
+}

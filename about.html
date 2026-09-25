@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>About · EEOC Engineering</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="topbar-placeholder"></div>
+
+<div class="page-wrap">
+  <div class="content-box">
+    <div class="profile-row">
+      <img src="about/profile1.jpg" alt="Profile 1" class="profile-circle">
+      <img src="about/profile2.jpg" alt="Profile 2" class="profile-circle">
+    </div>
+    <div class="md-content" id="aboutContent">
+      <p>Loading...</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="site.js"></script>
+<script>
+  loadTopbar("about");
+
+  fetch("about/about.md")
+    .then((res) => {
+      if (!res.ok) throw new Error("about.md not found");
+      return res.text();
+    })
+    .then((text) => {
+      const html = marked.parse ? marked.parse(text) : marked(text);
+      document.getElementById("aboutContent").innerHTML = html;
+    })
+    .catch((err) => {
+      document.getElementById("aboutContent").innerHTML = "<p>Content coming soon.</p>";
+      console.error(err);
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Store · EEOC Engineering</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="topbar-placeholder"></div>
+
+<div class="page-wrap">
+  <div class="content-box hero section">
+    <h1>Store</h1>
+    <p>Browse our current lineup of products.</p>
+  </div>
+
+  <div class="card-grid" id="productGrid">
+    <p>Loading products...</p>
+  </div>
+</div>
+
+<script src="site.js"></script>
+<script>
+  loadTopbar("store");
+
+  async function loadProducts() {
+    const grid = document.getElementById("productGrid");
+    try {
+      const idxRes = await fetch("store/products/index.json");
+      if (!idxRes.ok) throw new Error("index.json not found");
+      const ids = await idxRes.json();
+
+      const products = await Promise.all(
+        ids.map((id) => fetch(`store/products/${id}.json`).then((r) => r.json()))
+      );
+
+      if (products.length === 0) {
+        grid.innerHTML = "<p>No products yet — check back soon.</p>";
+        return;
+      }
+
+      grid.innerHTML = "";
+      products.forEach((p) => {
+        const a = document.createElement("a");
+        a.className = "card product-card";
+        a.href = `product.html?id=${encodeURIComponent(p.id)}`;
+        a.innerHTML = `
+          <img class="product-thumb" src="store/products/${p.id}/${p.thumbnail}" alt="${p.name}">
+          <h3>${p.name}</h3>
+          <p class="product-price">${p.price}</p>
+        `;
+        grid.appendChild(a);
+      });
+    } catch (err) {
+      grid.innerHTML = "<p>Couldn't load products right now.</p>";
+      console.error(err);
+    }
+  }
+
+  loadProducts();
+</script>
+</body>
+</html>

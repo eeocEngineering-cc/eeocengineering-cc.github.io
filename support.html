@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Support · EEOC Engineering</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="topbar-placeholder"></div>
+
+<div class="page-wrap">
+
+  <!-- Quick Start Guide + Contact -->
+  <div class="content-box section">
+    <h2 class="section-title">Documentation</h2>
+    <p style="opacity:.85; margin-bottom:1.5rem; line-height:1.6;">
+      Download the quick start guide for step-by-step setup instructions for your device.
+    </p>
+    <a href="elio_manual.pdf" download class="btn" style="margin-bottom:1rem;">
+      <svg style="width:1.2em;height:1.2em;flex-shrink:0;" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+      </svg>
+      Download ELIO Quick Start Guide
+    </a>
+  </div>
+
+  <!-- Contact -->
+  <div class="content-box section">
+    <h2 class="section-title">Contact Us</h2>
+    <p style="opacity:.85; line-height:1.6;">
+      Have a question or issue? Email us at
+      <a href="mailto:support@eeocengineering.cc" style="text-decoration:underline;">
+        support@eeocengineering.cc
+      </a>
+      and we'll get back to you as soon as we can.
+    </p>
+  </div>
+
+  <!-- Firmware Update -->
+  <div class="content-box section">
+    <h2 class="section-title">⚡ Firmware Update</h2>
+
+    <div class="requirements">
+      <strong>Before you start:</strong><br>
+      This tool flashes firmware directly from your browser over USB — no software install needed.
+      It requires a desktop browser with Web Serial support:
+      <strong>Google Chrome, Microsoft Edge, or Opera</strong>.
+      It will <strong>not</strong> work in Safari or Firefox, and does not work on mobile.
+    </div>
+
+    <div id="browserWarning" class="unsupported" style="display:none; margin-bottom:1.5rem;">
+      Your current browser doesn't support the Web Serial API.
+      Please open this page in Chrome, Edge, or Opera on a desktop computer.
+    </div>
+
+    <ul class="release-list" id="releaseList"></ul>
+  </div>
+
+</div>
+
+<!-- Firmware flash modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box" id="modalBox">
+    <h2 id="modalTitle"></h2>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { ESPLoader, Transport } from "https://cdn.jsdelivr.net/npm/esptool-js@0.5.7/+esm";
+
+  // ---- CONFIGURE YOUR RELEASES HERE ----
+  const RELEASES = [
+    {
+      name: "Elio Buzzers v4.04-sync.",
+      dir: "firmware/elio-buzzers-v4.04-sync",
+    },
+    // Add more: { name: "Elio Buzzers v4.05", dir: "firmware/elio-buzzers-v4.05" },
+  ];
+
+  // Standard ESP32-S3 flash offsets
+  const OFFSETS = {
+    bootloader: 0x0,
+    partitions: 0x8000,
+    firmware: 0x10000,
+  };
+
+  const releaseListEl = document.getElementById("releaseList");
+  const browserWarningEl = document.getElementById("browserWarning");
+  const overlayEl = document.getElementById("modalOverlay");
+  const modalTitleEl = document.getElementById("modalTitle");
+  const modalBodyEl = document.getElementById("modalBody");
+  const modalBoxEl = document.getElementById("modalBox");
+
+  const supported = "serial" in navigator;
+
+  RELEASES.forEach((release) => {
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    btn.className = "release-btn";
+    btn.disabled = !supported;
+    btn.innerHTML = `<span>${release.name}</span><span class="arrow">&rarr;</span>`;
+    btn.addEventListener("click", () => startFlow(release));
+    li.appendChild(btn);
+    releaseListEl.appendChild(li);
+  });
+
+  if (!supported) browserWarningEl.style.display = "block";
+
+  let selectedPort = null;
+
+  function openModal(title, bodyHtml, boxClass = "") {
+    modalTitleEl.textContent = title;
+    modalBodyEl.innerHTML = bodyHtml;
+    modalBoxEl.className = "modal-box " + boxClass;
+    overlayEl.classList.add("open");
+  }
+
+  function closeModal() {
+    overlayEl.classList.remove("open");
+    selectedPort = null;
+  }
+
+  function startFlow(release) {
+    selectedPort = null;
+    showPlugStep(release);
+  }
+
+  function showPlugStep(release) {
+    openModal(
+      "Connect the device",
+      `<p>Plug the PWR or PWR/IC port on the main control box into your device.</p>
+       <button class="modal-btn" id="plugDoneBtn">Done</button>
+       <button class="modal-btn secondary" id="plugCancelBtn">Cancel</button>`
+    );
+    document.getElementById("plugDoneBtn").addEventListener("click", () => showConnectStep(release));
+    document.getElementById("plugCancelBtn").addEventListener("click", closeModal);
+  }
+
+  function showConnectStep(release) {
+    openModal(
+      "Select your device",
+      `<p>Choose your device from the list — it's usually the only one with "USB" in its name.</p>
+       <div class="device-status" id="deviceStatus"></div>
+       <button class="modal-btn" id="selectPortBtn">Select Device</button>
+       <button class="modal-btn secondary" id="uploadBtn" disabled>Upload</button>`
+    );
+
+    const deviceStatusEl = document.getElementById("deviceStatus");
+    const selectBtn = document.getElementById("selectPortBtn");
+    const uploadBtn = document.getElementById("uploadBtn");
+
+    selectBtn.addEventListener("click", async () => {
+      try {
+        selectedPort = await navigator.serial.requestPort();
+        deviceStatusEl.textContent = "Device selected ✓";
+        uploadBtn.disabled = false;
+      } catch (err) {
+        // user cancelled — no action needed
+      }
+    });
+
+    uploadBtn.addEventListener("click", () => {
+      if (!selectedPort) return;
+      showFlashingStep(release);
+    });
+  }
+
+  async function showFlashingStep(release) {
+    openModal(
+      "Uploading firmware",
+      `<div class="progress-label" id="progressLabel">Connecting...</div>
+       <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+       <p style="font-size:.85rem; opacity:.7; margin-bottom:0;">Do not unplug the device during this process.</p>`
+    );
+
+    const progressLabelEl = document.getElementById("progressLabel");
+    const progressFillEl = document.getElementById("progressFill");
+    const fileLabels = ["bootloader.bin", "partitions.bin", "firmware.bin"];
+
+    try {
+      const transport = new Transport(selectedPort, true);
+      const esploader = new ESPLoader({
+        transport,
+        baudrate: 115200,
+        terminal: { clean() {}, writeLine() {}, write() {} },
+      });
+
+      progressLabelEl.textContent = "Connecting to device...";
+      await esploader.main();
+
+      progressLabelEl.textContent = "Loading firmware files...";
+      const [bootloader, partitions, firmware] = await Promise.all([
+        fetchBinaryString(`${release.dir}/bootloader.bin`),
+        fetchBinaryString(`${release.dir}/partitions.bin`),
+        fetchBinaryString(`${release.dir}/firmware.bin`),
+      ]);
+
+      await esploader.writeFlash({
+        fileArray: [
+          { data: bootloader, address: OFFSETS.bootloader },
+          { data: partitions, address: OFFSETS.partitions },
+          { data: firmware, address: OFFSETS.firmware },
+        ],
+        flashSize: "keep",
+        eraseAll: false,
+        compress: true,
+        reportProgress: (fileIndex, written, total) => {
+          const percent = total ? Math.round((written / total) * 100) : 0;
+          progressLabelEl.textContent = `Writing ${fileLabels[fileIndex] || "file"}... ${percent}%`;
+          progressFillEl.style.width = percent + "%";
+        },
+      });
+
+      await esploader.after("hard_reset");
+      try { await transport.disconnect(); } catch (e) {}
+
+      showDoneStep();
+    } catch (err) {
+      console.error(err);
+      showErrorStep(err && err.message ? err.message : String(err));
+    }
+  }
+
+  function showDoneStep() {
+    openModal(
+      "Update complete",
+      `<p>Flashing complete! Unplug and replug your device.</p>
+       <button class="modal-btn" id="doneCloseBtn">Close</button>`,
+      "done"
+    );
+    document.getElementById("doneCloseBtn").addEventListener("click", closeModal);
+  }
+
+  function showErrorStep(message) {
+    openModal(
+      "Something went wrong",
+      `<p>${escapeHtml(message)}</p>
+       <button class="modal-btn secondary" id="errorCloseBtn">Close</button>`,
+      "error"
+    );
+    document.getElementById("errorCloseBtn").addEventListener("click", closeModal);
+  }
+
+  async function fetchBinaryString(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Couldn't load ${url} (HTTP ${res.status})`);
+    const buf = await res.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let binary = "";
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+    }
+    return binary;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  overlayEl.addEventListener("click", (e) => {
+    if (e.target === overlayEl && modalTitleEl.textContent !== "Uploading firmware") {
+      closeModal();
+    }
+  });
+</script>
+
+<script src="site.js"></script>
+<script>loadTopbar("support");</script>
+</body>
+</html>

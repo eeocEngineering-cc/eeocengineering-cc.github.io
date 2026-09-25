@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Product · EEOC Engineering</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="topbar-placeholder"></div>
+
+<div class="page-wrap">
+  <a href="store.html" class="btn secondary" style="margin-bottom: 1.5rem;">&larr; Back to Store</a>
+
+  <div class="content-box" id="productBox">
+    <p>Loading product...</p>
+  </div>
+</div>
+
+<script async src="https://js.stripe.com/v3/buy-button.js"></script>
+<script src="site.js"></script>
+<script>
+  loadTopbar("store");
+
+  let currentSlide = 0;
+
+  function moveCarousel(delta) {
+    const track = document.getElementById("carouselTrack");
+    const total = track.children.length;
+    currentSlide = (currentSlide + delta + total) % total;
+    track.style.transform = `translateX(-${currentSlide * 100}%)`;
+    document.querySelectorAll(".carousel-dot").forEach((d, i) => {
+      d.classList.toggle("active", i === currentSlide);
+    });
+  }
+
+  function goToSlide(i) {
+    const track = document.getElementById("carouselTrack");
+    currentSlide = i % track.children.length;
+    moveCarousel(0);
+  }
+
+  function getProductId() {
+    return new URLSearchParams(window.location.search).get("id");
+  }
+
+  async function loadProduct() {
+    const box = document.getElementById("productBox");
+    const id = getProductId();
+    if (!id) {
+      box.innerHTML = "<p>No product specified.</p>";
+      return;
+    }
+    try {
+      const res = await fetch(`store/products/${id}.json`);
+      if (!res.ok) throw new Error("not found");
+      const p = await res.json();
+
+      const imageTags = p.images
+        .map((img) => `<img src="store/products/${p.id}/${img}" alt="${p.name}">`)
+        .join("");
+
+      const dotTags = p.images
+        .map((_, i) => `<span class="carousel-dot${i === 0 ? " active" : ""}" onclick="goToSlide(${i})"></span>`)
+        .join("");
+
+      box.innerHTML = `
+        <div class="product-top">
+          <div class="buy-box">
+            <h1>${p.name}</h1>
+            <p class="product-price">${p.price}</p>
+            <stripe-buy-button
+              buy-button-id="${p.stripe_buy_button_id}"
+              publishable-key="${p.stripe_publishable_key}">
+            </stripe-buy-button>
+          </div>
+          <div class="carousel">
+            <div class="carousel-track" id="carouselTrack">${imageTags}</div>
+            ${p.images.length > 1 ? `
+              <button class="carousel-btn prev" onclick="moveCarousel(-1)">&#8249;</button>
+              <button class="carousel-btn next" onclick="moveCarousel(1)">&#8250;</button>
+            ` : ""}
+          </div>
+        </div>
+        ${p.images.length > 1 ? `<div class="carousel-dots">${dotTags}</div>` : ""}
+        <div class="md-content">
+          <p>${p.description}</p>
+        </div>
+      `;
+    } catch (err) {
+      box.innerHTML = "<p>Couldn't find that product.</p>";
+      console.error(err);
+    }
+  }
+
+  loadProduct();
+</script>
+</body>
+</html>
