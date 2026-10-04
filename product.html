@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Product · EEOC</title>
+<title>Product · EEOC Engineering</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,6 +16,12 @@
   <div class="content-box" id="productBox">
     <p>Loading product...</p>
   </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightboxClose">&times;</button>
+  <img id="lightboxImg" src="" alt="">
 </div>
 
 <script async src="https://js.stripe.com/v3/buy-button.js"></script>
@@ -98,6 +104,31 @@
   }
 
   loadProduct();
+
+  // Lightbox
+  const lightbox    = document.getElementById("lightbox");
+  const lightboxImg = document.getElementById("lightboxImg");
+
+  function openLightbox(src, alt) {
+    lightboxImg.src = src;
+    lightboxImg.alt = alt;
+    lightbox.classList.add("open");
+  }
+  function closeLightbox() {
+    lightbox.classList.remove("open");
+  }
+
+  // Wire up clicks on carousel images — delegated so it works after loadProduct() inserts them
+  document.addEventListener("click", (e) => {
+    if (e.target.closest(".carousel-track img")) {
+      const img = e.target.closest("img");
+      openLightbox(img.src, img.alt);
+    }
+  });
+
+  document.getElementById("lightboxClose").addEventListener("click", closeLightbox);
+  lightbox.addEventListener("click", (e) => { if (e.target === lightbox) closeLightbox(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeLightbox(); });
 </script>
 </body>
 </html>
