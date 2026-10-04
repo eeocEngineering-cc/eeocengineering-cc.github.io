@@ -1,6 +1,6 @@
 ## Who We Are
 
-&emsp;&emsp;EEOC was created in 2025 by two high school Bible Bowl players, Ivan and Porter, from New Day Christian Church in Port Charlotte, FL. We're both aspiring engineers who enjoy solving problems and making things better. EEOC stands for Equiptment Exceeds Operator Capabilities, mostly because we found ourselves in over our heads so often at first.<br>
+&emsp;&emsp;EEOC was created in 2025 by two high school Bible Bowl players, Ivan and Porter, from New Day Christian Church in Port Charlotte, FL. We're both aspiring engineers who enjoy solving problems and making things better. EEOC stands for Equipment Exceeds Operator Capabilities, mostly because we found ourselves in over our heads so often at first.<br>
 &emsp;&emsp;We saw that our church paid a large amount for buzzer systems and that they were quite fragile.
 We decided we could do better. Little did we know we would spend months obsessed with the project.
 Initially, we planned to simply design a system that could be constructed by someone with moderate techincal ability from easily accessible and 3D printed parts.<br>
