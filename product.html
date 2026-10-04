@@ -65,15 +65,12 @@
         .map((_, i) => `<span class="carousel-dot${i === 0 ? " active" : ""}" onclick="goToSlide(${i})"></span>`)
         .join("");
 
+      // Build static HTML for everything except the Stripe element
       box.innerHTML = `
         <div class="product-top">
-          <div class="buy-box">
+          <div class="buy-box" id="buyBox">
             <h1>${p.name}</h1>
             <p class="product-price">${p.price}</p>
-            <stripe-buy-button
-              buy-button-id="${p.stripe_buy_button_id}"
-              publishable-key="${p.stripe_publishable_key}">
-            </stripe-buy-button>
           </div>
           <div class="carousel">
             <div class="carousel-track" id="carouselTrack">${imageTags}</div>
@@ -88,6 +85,12 @@
           <p>${p.description}</p>
         </div>
       `;
+
+      // Create the Stripe element properly so its web component observer fires
+      const stripeBtn = document.createElement("stripe-buy-button");
+      stripeBtn.setAttribute("buy-button-id", p.stripe_buy_button_id);
+      stripeBtn.setAttribute("publishable-key", p.stripe_publishable_key);
+      document.getElementById("buyBox").appendChild(stripeBtn);
     } catch (err) {
       box.innerHTML = "<p>Couldn't find that product.</p>";
       console.error(err);
