@@ -74,11 +74,11 @@
   // ---- CONFIGURE YOUR RELEASES HERE ----
   const RELEASES = [
     {
-      name: "Elio Buzzers v4.5",
+      name: "Elio Buzzers v4.5 (LATEST - Oct 2026 Update)",
       dir: "firmware/elio-v4.5",
     },
     {
-      name: "Elio Buzzers v4.4-sync.",
+      name: "Elio Buzzers v4.4-sync (March-Sept 2026 - Allows wireless syncing between systems)",
       dir: "firmware/elio-buzzers-v4.04-sync",
     },
     // Add more: { name: "Elio Buzzers v4.05", dir: "firmware/elio-buzzers-v4.05" },
@@ -135,7 +135,7 @@
   function showPlugStep(release) {
     openModal(
       "Connect the device",
-      `<p>Plug the PWR or PWR/IC port on the main control box into your device.</p>
+      `<p>Using a USB-C data cable (such as the power cord included with the buzzers), connect the PWR or PWR/IC port on the control box to your computer.</p>
        <button class="modal-btn" id="plugDoneBtn">Done</button>
        <button class="modal-btn secondary" id="plugCancelBtn">Cancel</button>`
     );
@@ -146,7 +146,7 @@
   function showConnectStep(release) {
     openModal(
       "Select your device",
-      `<p>Choose your device from the list — it's usually the only one with "USB" in its name.</p>
+      `<p>Choose your buzzer set from the list — it's usually the only one with "USB" in its name.</p>
        <div class="device-status" id="deviceStatus"></div>
        <button class="modal-btn" id="selectPortBtn">Select Device</button>
        <button class="modal-btn secondary" id="uploadBtn" disabled>Upload</button>`
