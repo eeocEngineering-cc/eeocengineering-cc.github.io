@@ -2,8 +2,8 @@
   "id": "elio-buzzers",
   "name": "Elio Buzzers v4",
   "price": "$185.00",
-  "thumbnail": "thumb.png",
-  "images": ["photo1.png", "photo2.png", "photo3.png"],
+  "thumbnail": "control-closeup.JPG",
+  "images": ["open-box.JPG", "buzz-in.JPG", "buzzer-back.JPG", "buzzer-closeup.JPG", "control-closeup.JPG", "iPhone-img.png", "left-side.JPG", "remote-closeup.JPG", "right-side.JPG"],
   "stripe_buy_button_id": "buy_btn_1THrRGQrCpTe1hMl8xedfKWc",
   "stripe_publishable_key": "pk_live_51S7MoHQrCpTe1hMlSfYVfHi4lpp0FMoQn10oTdFCfodIE2UJvy7fKd9S3dhqAWxx2lJjg2XrlUCUjM6zAHv7qd5300OhPsMrdz",
   "description": "Project Elio Buzzers are designed for Bible Bowl and useful for trivia, game shows, and classrooms. Each unit features front and back RGB LEDs, a satisfying pushbutton, and connects to the rest of the system with CAT5E Ethernet cables. The buzzers are controlled by a central ESP32 hub and daisy chained together.\n\nIncludes eight buzzers (4 on each team), one remote clear button, and one main control box."
